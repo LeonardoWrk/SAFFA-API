@@ -99,7 +99,7 @@ public class SystemrController {
         }
     }
 
-    @GetMapping("/verificar-cpf")
+    @PostMapping("/verificar-cpf")
     public ResponseEntity<String> verificarCpf(@RequestBody Map<String, String> credentials) {
         String cpf = credentials.get("cpf");
         boolean existe = repository.findByCpf(cpf).isPresent();

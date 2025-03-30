@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.domain.affiliate.Affiliate;
@@ -80,5 +83,31 @@ public class SystemrController {
         repository.save(user);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody Map<String, String> credentials) {
+        String cpf = credentials.get("cpf");
+        String email = credentials.get("email");
+
+        Optional<User> user = repository.findByCpfAndEmail(cpf, email);
+        
+        if (user.isPresent()) {
+            return ResponseEntity.ok("Login bem-sucedido");
+        } else {
+            return ResponseEntity.status(401).body("Credenciais inválidas");
+        }
+    }
+
+    @GetMapping("/verificar-cpf")
+    public ResponseEntity<String> verificarCpf(@RequestBody Map<String, String> credentials) {
+        String cpf = credentials.get("cpf");
+        boolean existe = repository.findByCpf(cpf).isPresent();
+        
+        if (existe) {
+            return ResponseEntity.ok("CPF já cadastrado");
+        } else {
+            return ResponseEntity.ok("CPF disponível");
+        }
     }
 }

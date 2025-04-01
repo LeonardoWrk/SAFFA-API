@@ -1,13 +1,17 @@
 package com.example.demo.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +33,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/contas")
-public class SystemrController {
+public class SystemController {
     @Autowired
     private UserRepository repository;
     @Autowired
@@ -86,28 +90,52 @@ public class SystemrController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> credentials) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String cpf = credentials.get("cpf");
         String email = credentials.get("email");
 
-        Optional<User> user = repository.findByCpfAndEmail(cpf, email);
+        Optional<User> userOptional = repository.findByCpfAndEmail(cpf, email);
         
-        if (user.isPresent()) {
-            return ResponseEntity.ok("Login bem-sucedido");
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return ResponseEntity.ok(user);
         } else {
             return ResponseEntity.status(401).body("Credenciais inválidas");
         }
     }
 
     @PostMapping("/verificar-cpf")
-    public ResponseEntity<String> verificarCpf(@RequestBody Map<String, String> credentials) {
+    public ResponseEntity<Map<String, String>>  verificarCpf(@RequestBody Map<String, String> credentials) {
         String cpf = credentials.get("cpf");
         boolean existe = repository.findByCpf(cpf).isPresent();
         
+         Map<String, String> response = new HashMap<>();
+
         if (existe) {
-            return ResponseEntity.ok("CPF já cadastrado");
+            response.put("message", "CPF ja cadastrado");
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.ok("CPF disponível");
+            response.put("message", "CPF disponível para cadastro.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteUser(
+        @PathVariable Long id,
+        @RequestParam Long requesterId // ID do usuário que está fazendo a requisição
+    ) {
+        User requester = repository.findById(requesterId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+        
+        if (requester.getType() != 2) {
+            return ResponseEntity.status(403).body("Acesso negado: apenas tipo 2.");
+        }
+    
+        User userToDelete = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário alvo não encontrado."));
+        
+        repository.delete(userToDelete);
+        return ResponseEntity.ok("Conta excluída com sucesso.");
     }
 }

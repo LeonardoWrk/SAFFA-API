@@ -44,7 +44,7 @@ public class User {
 
     private String email;
 
-    private String Senha;
+    private String senha;
 
     @ManyToOne
     @JoinColumn(name = "id_plano", nullable = true)
@@ -60,6 +60,6 @@ public class User {
         this.cpf   = dataDto.cpf();
         this.loc   = dataDto.loc() ;
         this.email = dataDto.email();
-        this.Senha = dataDto.senha();
+        this.senha = dataDto.senha();
     }   
 }

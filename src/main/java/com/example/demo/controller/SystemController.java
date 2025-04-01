@@ -92,9 +92,9 @@ public class SystemController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String cpf = credentials.get("cpf");
-        String email = credentials.get("email");
+        String senha = credentials.get("senha");
 
-        Optional<User> userOptional = repository.findByCpfAndEmail(cpf, email);
+        Optional<User> userOptional = repository.findByCpfAndSenha(cpf, senha);
         
         if (userOptional.isPresent()) {
             User user = userOptional.get();

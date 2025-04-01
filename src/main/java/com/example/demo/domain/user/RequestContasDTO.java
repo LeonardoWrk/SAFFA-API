@@ -8,5 +8,6 @@ public record RequestContasDTO(
         Date data,
         String cpf,
         String loc,
-        String email
+        String email,
+        String senha
 ) { }

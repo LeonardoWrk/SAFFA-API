@@ -47,13 +47,20 @@ public class SystemController {
         return ResponseEntity.ok(contas);
     }
 
+    @GetMapping("/por-cpf/{cpf}")
+    public ResponseEntity<User> getUsuarioPorCpf(@PathVariable String cpf) {
+        return repository.findByCpf(cpf)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
     @PostMapping //realmente preciso passar como <list>?
     public ResponseEntity<List<User>> cadastrarConta(@RequestBody @Validated RequestContasDTO dataDto){
         User newUser = new User(dataDto);
         newUser.setPlano(null);
-        System.out.println(newUser +"teste");
+        if (dataDto.type() == null) {
+            newUser.setType(1);
+        }
         repository.save(newUser);
-        
         return ResponseEntity.ok().build();
     }
     
@@ -137,5 +144,18 @@ public class SystemController {
         
         repository.delete(userToDelete);
         return ResponseEntity.ok("Conta excluída com sucesso.");
+    }
+
+    @GetMapping("/funcionarios")
+    public ResponseEntity<List<User>> getFuncionarios(@RequestParam Long requesterId) {
+        User requester = repository.findById(requesterId)
+        .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+
+        if (requester.getType() != 2) {
+        return ResponseEntity.status(403).build();
+        }
+
+        List<User> funcionarios = repository.findAllByType(2); // Busca todos do tipo 2
+        return ResponseEntity.ok(funcionarios);
     }
 }
